@@ -1,9 +1,44 @@
 doctype html
 html(lang="en")
   head
-    title
-    script(type='text/javascript' )
-    
+    title="My GA test page"
+    meta(http-equiv='refresh', content='10') 
+    script(crossorigin="anonymous" type='text/javascript' src="https://unpkg.com/launchdarkly-js-client-sdk@2.20.0/dist/ldclient.min.js")
+    script(async src="https://www.googletagmanager.com/gtag/js?id=G-EBX5SBQDCQ")
+    script.
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-EBX5SBQDCQ');
+
+      const context = {
+        key: "user" + Math.floor(Math.random() * 9525),
+        custom: {
+          group: ["beta","ring"],
+        }
+      };
+      const flagname = "2022.Jan.Notification.Acceptance.Temp";
+      const sdkkey = "618e44eabbda2a15aa1a88d6";
+      let client = LDClient.initialize(sdkkey, context);
+      console.log(client);
+      client.on('ready', ()=>{
+
+        function analyticsTemplate(gtag , details, flagname){
+        let assignment = { 
+          "flagname": flagname,
+          "treatmentIndex": details.variationIndex,
+          "audience": details.reason.ruleId !== null ? details.reason.ruleId : "None given.",
+          "kind": details.reason.kind,
+          
+        };
+        console.log(assignment)
+        if(!!window.gtag) gtag("event", "feature_treatment", assignment);
+      }
+        let details = client.variationDetail(flagname, 0);
+        console.log(details);
+        analyticsTemplate(gtag, details, flagname);
+      })
+      
   body
     h1 Hello
     
