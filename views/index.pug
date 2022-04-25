@@ -2,7 +2,7 @@ doctype html
 html(lang="en")
   head
     title="My GA test page"
-    //-meta(http-equiv='refresh', content='10') 
+    meta(http-equiv='refresh', content='5') 
     link(rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous")
     script(crossorigin="anonymous" type='text/javascript' src="https://unpkg.com/launchdarkly-js-client-sdk@2.20.0/dist/ldclient.min.js")
     script(async src="https://www.googletagmanager.com/gtag/js?id=G-EBX5SBQDCQ")
@@ -15,31 +15,64 @@ html(lang="en")
       const context = {
         key: "user" + Math.floor(Math.random() * 9525),
         custom: {
-          group: ["beta","ring"],
+          group: ["beta","ring", "frequent-visitors"],
+          attribute_abc: ["my_attribute_value"],
         }
       };
-      const flagname = "2022.Jan.Notification.Acceptance.Temp";
+      const flagname = "2022.April.Demo.Results.PERM";
       const sdkkey = "618e44eabbda2a15aa1a88d6";
       let client = LDClient.initialize(sdkkey, context);
       console.log(client);
+      let variant = null;
       client.on('ready', ()=> {
-        function analyticsTemplate(gtag , details, flagname){
-          let assignment = { 
-            "flagname": flagname,
-            "treatmentIndex": details.variationIndex,
-            "audience": details.reason.ruleId !== null ? details.reason.ruleId : "None given.",
-            "kind": details.reason.kind,
-          };
-          console.log(assignment)
-          if(!!window.gtag) gtag("event", "feature_treatment", assignment);
-        }
+        const analyticsTemplate = async (gtag, details, flagname) => {
+                    let assignment = {
+                      flagname: flagname,
+                      treatment: details.variationIndex,
+                      isExperiment: details.reason.inExperiment == null || details.reason.inExperiment == undefined ?  false : details.reason.inExperiment,
+                      audience: details.reason.ruleId !== null || details.reason.ruleId !== undefined ? details.reason.ruleId: details.reason.kind,
+                      audienceIndex: details.reason.ruleIndex !== null || details.reason.ruleId !== undefined ? details.reason.ruleIndex: details.reason.kind,
+                      eventCreated: new Date(),
+                    };
+
+                    if (!!window.gtag)
+                      gtag("event", "feature_treatment", assignment);
+
+                  }
         let details = client.variationDetail(flagname, 0);
+        variant = details.value;
         console.log(details);
+        console.log(variant);
         analyticsTemplate(gtag, details, flagname);
        })
+       let number = Math.random() * 100;
+       let items = Math.random()* 10;
+       function helper(){
+         console.log("Sent 1");
+          client.track("numeric_metric_1", null, parseFloat(number.toFixed(2)));
+          client.track("conversion_metric_1");
+          client.track("conversion_metric_2");
+       }
+
+        function helper2(){
+         console.log("Sent 2");
+          client.track("numeric_metric_1", null, 0);
+          client.track("conversion_metric_1");
+       }
+      
+      
+
+
+       //if(number % 5 == 0) client.track()
+       console.log(number.toFixed(2))
+       console.log(Math.floor(items))
 
   body
   - var variable = "wave"
     h1 Hello 
     div #{variable}
-    
+    button(class='primary' onclick='helper()')
+    button(class='secondary' onclick='helper2()')
+  script. 
+    if(Math.floor(items) % 3 == 0) document.querySelector(".primary").click();
+    else if(Math.floor(items) % 2 == 0) document.querySelector(".secondary").click();

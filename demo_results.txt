@@ -1,0 +1,34 @@
+[Options]
+@include[] = /^https?://.*app.*\.launchdarkly\.com(:[0-9]+)?/.*$/
+
+; Make the use of appd commands easier by importing the namespace
+@namespace[] = LaunchDarklyResults
+
+[Variables]
+
+$customer = ACME
+$champ = Simon Herron
+$manager = Mark Abramson
+
+
+[Alterations]
+
+;Holistic changes
+SBYS - Allocation = $customer Experimentation Team
+!querySelector(.EnvironmentSwitcher-buttonName) = Web Production
+2022.April.Demo.Results.PERM = 2022.April.Custom.Demo.Name
+
+;Renaming your Targeting Attributes
+attribute_abc = $customer_loyalty_attribute
+!querySelector(.Select-option-label.SelectAttributeValue-label--string) = true
+
+;Renaming your Variations
+treatment_name_a = Control
+treatment_name_b = Custom Text
+treatment_name_c = Brighter Colours
+
+;Renaming your Metrics
+conversion_metric_1 = Checkout starts
+conversion_metric_2 = Checkout completed
+numeric_metric_1 = Revenue
+change_me = USD
